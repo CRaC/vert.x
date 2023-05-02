@@ -44,10 +44,17 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.metrics.Metrics;
 import io.vertx.core.spi.metrics.MetricsProvider;
 import io.vertx.core.spi.metrics.TCPMetrics;
+import org.crac.CheckpointException;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -76,6 +83,8 @@ public class NetClientImpl implements MetricsProvider, NetClient, Closeable {
   private final CloseFuture closeFuture;
   private final Predicate<SocketAddress> proxyFilter;
 
+  private final ResourceImpl cracResource = new ResourceImpl();
+
   public NetClientImpl(VertxInternal vertx, TCPMetrics metrics, NetClientOptions options, CloseFuture closeFuture) {
     this.vertx = vertx;
     this.channelGroup = new DefaultChannelGroup(vertx.getAcceptorEventLoopGroup().next());
@@ -89,6 +98,7 @@ public class NetClientImpl implements MetricsProvider, NetClient, Closeable {
     this.idleTimeoutUnit = options.getIdleTimeoutUnit();
     this.closeFuture = closeFuture;
     this.proxyFilter = options.getNonProxyHosts() != null ? ProxyFilter.nonProxyHosts(options.getNonProxyHosts()) : ProxyFilter.DEFAULT_PROXY_FILTER;
+    Core.getGlobalContext().register(cracResource);
   }
 
   protected void initChannel(ChannelPipeline pipeline) {
@@ -289,6 +299,11 @@ public class NetClientImpl implements MetricsProvider, NetClient, Closeable {
     EventLoop eventLoop = context.nettyEventLoop();
 
     if (eventLoop.inEventLoop()) {
+      if (cracResource.delayed != null) {
+        cracResource.delayed.add(() -> connectInternal2(proxyOptions, remoteAddress, peerAddress, sslChannelProvider, serverName, ssl, useAlpn, registerWriteHandlers, connectHandler, context, remainingAttempts));
+        return;
+      }
+
       Objects.requireNonNull(connectHandler, "No null connectHandler accepted");
       Bootstrap bootstrap = new Bootstrap();
       bootstrap.group(eventLoop);
@@ -345,6 +360,43 @@ public class NetClientImpl implements MetricsProvider, NetClient, Closeable {
       ch.close();
     }
     context.emit(th, connectHandler::tryFail);
+  }
+
+  private class ResourceImpl implements Resource {
+    private List<Runnable> delayed;
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) {
+      // We cannot block the whole eventloop because there might be other resources
+      // using that. We will delay all new connections until restore instead.
+      CountDownLatch latch = new CountDownLatch(1);
+      vertx.getOrCreateContext().runOnContext(ignored -> {
+        delayed = new ArrayList<>();
+        channelGroup.close();
+        latch.countDown();
+      });
+      try {
+        latch.await();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) {
+      CountDownLatch latch = new CountDownLatch(1);
+      vertx.getOrCreateContext().runOnContext(ignored -> {
+        List<Runnable> toRun = delayed;
+        delayed = null;
+        toRun.forEach(Runnable::run);
+        latch.countDown();
+      });
+      try {
+        latch.await();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 }
 
