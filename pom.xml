@@ -19,6 +19,7 @@
     <version>19</version>
   </parent>
 
+  <groupId>io.github.crac.io.vertx</groupId>
   <artifactId>vertx-core</artifactId>
   <version>4.3.8</version>
 
@@ -38,10 +39,21 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:git@github.com:eclipse/vert.x.git</connection>
-    <developerConnection>scm:git:git@github.com:eclipse/vert.x.git</developerConnection>
-    <url>git@github.com:eclipse/vert.x.git</url>
+    <connection>scm:git:git@github.com:CRaC/vert.x.git</connection>
+    <developerConnection>scm:git:git@github.com:CRaC/vert.x.git</developerConnection>
+    <url>git@github.com:CRaC/vert.x.git</url>
   </scm>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 
   <properties>
     <slf4j.version>1.7.21</slf4j.version>
@@ -727,6 +739,7 @@
           </execution>
         </executions>
       </plugin>
+
     </plugins>
 
     <resources>
@@ -839,8 +852,13 @@
                 <phase>package</phase>
                 <goals>
                   <goal>javadoc</goal>
+                  <goal>jar</goal>
                 </goals>
-              </execution>
+                <configuration>
+                  <source>11</source>
+                  <detectJavaApiLink>false</detectJavaApiLink>
+                </configuration>
+	      </execution>
             </executions>
           </plugin>
         </plugins>
@@ -902,6 +920,42 @@
       </dependencies>
     </profile>
 
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <keyname>${gpg.keyname}</keyname>
+                  <passphraseServerId>${gpg.keyname}</passphraseServerId>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.13</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>false</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
 </project>
