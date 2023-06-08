@@ -68,6 +68,11 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-transport-classes-epoll</artifactId>
+        <version>4.1.94.Final-SNAPSHOT</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
