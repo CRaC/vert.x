@@ -1,4 +1,16 @@
-[![Build Status](https://github.com/eclipse-vertx/vert.x/workflows/CI/badge.svg?branch=master)](https://github.com/eclipse-vertx/vert.x/actions?query=workflow%3ACI)
+
+## Fork information
+
+This is a forked version of the Vert.x project intended to be used before the support for CRaC lands in the official version. The artifact should land on these Maven coordinates:
+
+```
+<dependency>
+   <groupId>io.github.crac.io.vertx</groupId>
+   <artifactId>vertx-core</artifactId>
+   <version><!-- version matching Vert.x Core release</version>
+</dependency>
+```
+
 
 ## Vert.x Core
 

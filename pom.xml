@@ -19,6 +19,7 @@
     <version>19</version>
   </parent>
 
+  <groupId>io.github.crac.io.vertx</groupId>
   <artifactId>vertx-core</artifactId>
   <version>4.3.9-SNAPSHOT</version>
 
@@ -38,9 +39,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:git@github.com:eclipse/vert.x.git</connection>
-    <developerConnection>scm:git:git@github.com:eclipse/vert.x.git</developerConnection>
-    <url>git@github.com:eclipse/vert.x.git</url>
+    <connection>scm:git:git@github.com:CRaC/vert.x.git</connection>
+    <developerConnection>scm:git:git@github.com:CRaC/vert.x.git</developerConnection>
+    <url>git@github.com:CRaC/vert.x.git</url>
   </scm>
 
   <properties>
