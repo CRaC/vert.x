@@ -1,3 +1,17 @@
+## Fork information
+
+This is a forked version of the Vert.x project intended to be used before the support for CRaC lands in the official version. The artifact should land on these Maven coordinates:
+
+```
+<dependency>
+   <groupId>io.github.crac.io.vertx</groupId>
+   <artifactId>vertx-core</artifactId>
+   <version>[version].CRAC.[update]</version>
+</dependency>
+```
+
+where `[version]` is a released Vert.x version we are trying to replace, and `[update]` is incrementing version of CRaC-related changes.
+
 [![Build Status (4.x)](https://github.com/eclipse-vertx/vert.x/actions/workflows/ci-4.x.yml/badge.svg)](https://github.com/eclipse-vertx/vert.x/actions/workflows/ci-4.x.yml)
 
 ## Vert.x Core
