@@ -21,7 +21,7 @@
 
   <groupId>io.github.crac.io.vertx</groupId>
   <artifactId>vertx-core</artifactId>
-  <version>4.4.6</version>
+  <version>4.4.6.CRAC.0</version>
 
   <name>Vert.x Core</name>
 
